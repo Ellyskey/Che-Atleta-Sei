@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Che tipo di futuro ti aspetta?</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #e6652e;
+      color: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    .quiz {
+      width: min(100% - 40px, 700px);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 0;
+    }
+
+    .screen {
+      width: 100%;
+      animation: appear 0.25s ease;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .question-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 17px;
+      height: 17px;
+      margin-right: 9px;
+      border-radius: 4px;
+      background: #ffffff;
+      color: #e6652e;
+      font-size: 11px;
+      font-weight: bold;
+      vertical-align: 2px;
+    }
+
+    .question {
+      margin: 0 0 38px;
+      font-size: 25px;
+      line-height: 1.35;
+      font-weight: 400;
+    }
+
+    .answers {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .answer {
+      width: 100%;
+      min-height: 47px;
+      padding: 8px 14px 8px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.025);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 17px;
+      line-height: 1.35;
+      text-align: left;
+      cursor: pointer;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
+    }
+
+    .answer:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .answer:active {
+      transform: scale(0.995);
+    }
+
+    .answer.selected {
+      background: rgba(255, 255, 255, 0.13);
+      border-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .letter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 25px;
+      height: 25px;
+      margin-right: 9px;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: bold;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    .next-row {
+      display: flex;
+      justify-content: flex-start;
+      margin-top: 30px;
+    }
+
+    .next-button,
+    .restart-button {
+      width: 54px;
+      height: 42px;
+      border: 0;
+      border-radius: 24px;
+      background: #ffffff;
+      color: #e6652e;
+      font-family: inherit;
+      font-size: 25px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .next-button:hover:not(:disabled),
+    .restart-button:hover {
+      transform: translateX(2px);
+    }
+
+    .next-button:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    /* Schermata iniziale */
+    .intro {
+      text-align: center;
+    }
+
+    .intro h1 {
+      margin: 0 0 18px;
+      font-size: 38px;
+      font-weight: 500;
+      line-height: 1.15;
+    }
+
+    .intro p {
+      margin: 0 auto 32px;
+      max-width: 520px;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .start-button {
+      border: 0;
+      border-radius: 24px;
+      padding: 11px 24px;
+      background: #ffffff;
+      color: #e6652e;
+      font-family: inherit;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    /* Risultato */
+    .result {
+      text-align: center;
+    }
+
+    .result-small {
+      margin-bottom: 12px;
+      font-size: 17px;
+    }
+
+    .result-letter {
+      margin: 0 0 10px;
+      font-size: 58px;
+      line-height: 1;
+      font-weight: 500;
+    }
+
+    .result-title {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.2;
+      font-weight: 500;
+    }
+
+    .result-subtitle {
+      margin: 0 auto 26px;
+      max-width: 580px;
+      font-size: 20px;
+      line-height: 1.45;
+    }
+
+    .result-description {
+      margin: 0 auto 32px;
+      max-width: 560px;
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .restart-button {
+      width: auto;
+      height: auto;
+      padding: 11px 22px;
+      font-size: 17px;
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 20%;
+      background: #ffffff;
+      transition: width 0.25s ease;
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .quiz {
+        width: min(100% - 28px, 700px);
+        padding: 28px 0;
+      }
+
+      .question {
+        margin-bottom: 28px;
+        font-size: 21px;
+      }
+
+      .answer {
+        font-size: 16px;
+        min-height: 50px;
+      }
+
+      .intro h1 {
+        font-size: 31px;
+      }
+
+      .result-title {
+        font-size: 27px;
+      }
+
+      .result-subtitle {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="progress">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <main class="quiz">
+
+    <!-- INTRO -->
+    <section class="screen intro" id="introScreen">
+      <h1>Che tipo di futuro ti aspetta?</h1>
+      <p>
+        5 domande per scoprire quale personaggio del futuro si nasconde dentro di te.
+      </p>
+      <button class="start-button" id="startButton">Inizia →</button>
+    </section>
+
+    <!-- DOMANDA -->
+    <section class="screen hidden" id="questionScreen">
+      <p class="question" id="questionText"></p>
+
+      <div class="answers" id="answers"></div>
+
+      <div class="next-row">
+        <button class="next-button" id="nextButton" disabled aria-label="Prossima domanda">›</button>
+      </div>
+    </section>
+
+    <!-- RISULTATO -->
+    <section class="screen result hidden" id="resultScreen">
+      <p class="result-small">Il tuo risultato è...</p>
+      <div class="result-letter" id="resultLetter"></div>
+      <h2 class="result-title" id="resultTitle"></h2>
+      <p class="result-subtitle" id="resultSubtitle"></p>
+      <p class="result-description" id="resultDescription"></p>
+      <button class="restart-button" id="restartButton">Rifai il quiz</button>
+    </section>
+
+  </main>
+
+  <script>
+    const questions = [
+      {
+        question: 'Quando senti la parola "FUTURO", la tua prima reazione è:',
+        answers: [
+          ['A', 'Ansia totale, datemi una camomilla.'],
+          ['B', 'Zero sbatti, vivo alla giornata e improvviso.'],
+          ['C', 'Ho già un piano decennale per dominare il mondo.'],
+          ['D', 'Voglio solo fare la valigia e andare lontanissimo.']
+        ]
+      },
+      {
+        question: 'Se ti chiedono un CV in questo momento:',
+        answers: [
+          ['A', 'È un file Word disperso dal 2021 che mi vergogno a mostrare.'],
+          ['B', 'Aspetta… cos’è esattamente un CV?'],
+          ['C', 'È impeccabile, impaginato bene e pronto all’uso.'],
+          ['D', 'Ha scritto solo: "So l’inglese, me la cavo coi social e mi piace viaggiare".']
+        ]
+      },
+      {
+        question: 'Nei lavori di gruppo a scuola o all’uni tu sei:',
+        answers: [
+          ['A', 'Quello che fa tutto da solo per paura che gli altri sbaglino.'],
+          ['B', 'Il jolly: arrivo alla fine, dico due battute e mi prendo il voto.'],
+          ['C', 'Il capitano: assegno i compiti a tutti e controllo l’orologio.'],
+          ['D', 'Quello che porta le merendine e fa ridere tutti.']
+        ]
+      },
+      {
+        question: 'Se a un colloquio ti fanno una domanda a sorpresa:',
+        answers: [
+          ['A', 'Faccio scena muta fissando il pavimento.'],
+          ['B', 'Dico la prima cosa folle che mi viene in mente con un sorriso fiero.'],
+          ['C', 'Rispondo come un manuale vivente (ho provato il discorso 50 volte).'],
+          ['D', 'La butto sul ridere e inizio a parlare delle mie passioni.']
+        ]
+      },
+      {
+        question: 'Il tuo obiettivo principale per i prossimi mesi:',
+        answers: [
+          ['A', 'Capire che strada prendere senza andare in crisi.'],
+          ['B', 'Trovare un lavoretto facile per togliermi qualche sfizio.'],
+          ['C', 'Trovare lo stage della vita o il corso perfetto per spaccare.'],
+          ['D', 'Fare un’esperienza nuova (all’estero, volontariato o progetti fighi).']
+        ]
+      }
+    ];
+
+    const results = {
+      A: {
+        title: 'Jannik Sinner al terzo set',
+        subtitle: 'Il perfezionista in ansia',
+        description: 'Hai voglia di fare bene le cose, ma prima di partire ti piacerebbe avere almeno altre 17 conferme. Forse non ti serve avere tutto sotto controllo: a volte basta iniziare a riordinare le idee.',
+        extra: '📝 Adesivo: RIORDINA LE TUE IDEE'
+      },
+      B: {
+        title: 'Lo Skater di strada',
+        subtitle: 'Il re dell’improvvisazione',
+        description: 'Non sai esattamente dove stai andando, ma in qualche modo trovi sempre il modo di arrivarci. Il futuro? Ci penserai quando sarà il momento. Nel frattempo, una domanda non fa mai male: cosa vuoi fare da grande?',
+        extra: '🛹 Adesivo: COSA VUOI FARE DA GRANDE?'
+      },
+      C: {
+        title: 'Cristiano Ronaldo / La Coach',
+        subtitle: 'Il metodico inarrestabile',
+        description: 'Obiettivi, strategie, liste e possibilmente un piano B, C e D. Ti piace sapere dove stai andando e come arrivarci. Ma ricordati: l’IA non ha tutte le risposte.',
+        extra: '🤖 L’IA NON HA TUTTE LE RISPOSTE'
+      },
+      D: {
+        title: 'L’Esploratore / Il Surfista',
+        subtitle: 'Lo spirito libero',
+        description: 'Per te il futuro significa soprattutto possibilità: partire, provare, conoscere persone e vedere dove ti porta la prossima onda. Non devi avere tutto deciso: puoi anche iniziare esplorando.',
+        extra: '🌊 Adesivo: COSA VUOI FARE DA GRANDE?'
+      }
+    };
+
+    let currentQuestion = 0;
+    let selectedAnswer = null;
+    let scores = {
+      A: 0,
+      B: 0,
+      C: 0,
+      D: 0
+    };
+
+    const introScreen = document.getElementById('introScreen');
+    const questionScreen = document.getElementById('questionScreen');
+    const resultScreen = document.getElementById('resultScreen');
+
+    const questionText = document.getElementById('questionText');
+    const answersContainer = document.getElementById('answers');
+    const nextButton = document.getElementById('nextButton');
+
+    const progressBar = document.getElementById('progressBar');
+
+    const resultLetter = document.getElementById('resultLetter');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultSubtitle = document.getElementById('resultSubtitle');
+    const resultDescription = document.getElementById('resultDescription');
+
+    document.getElementById('startButton').addEventListener('click', startQuiz);
+    nextButton.addEventListener('click', nextQuestion);
+    document.getElementById('restartButton').addEventListener('click', restartQuiz);
+
+    function startQuiz() {
+      introScreen.classList.add('hidden');
+      questionScreen.classList.remove('hidden');
+
+      currentQuestion = 0;
+      selectedAnswer = null;
+      scores = { A: 0, B: 0, C: 0, D: 0 };
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      selectedAnswer = null;
+      nextButton.disabled = true;
+
+      const question = questions[currentQuestion];
+
+      questionText.innerHTML =
+        '<span class="question-number">' +
+        (currentQuestion + 1) +
+        '</span>' +
+        question.question;
+
+      answersContainer.innerHTML = '';
+
+      question.answers.forEach(([letter, text]) => {
+        const button = document.createElement('button');
+        button.className = 'answer';
+        button.type = 'button';
+        button.innerHTML =
+          '<span class="letter">' + letter + '</span>' +
+          text;
+
+        button.addEventListener('click', () => selectAnswer(letter, button));
+
+        answersContainer.appendChild(button);
+      });
+
+      progressBar.style.width =
+        ((currentQuestion + 1) / questions.length) * 100 + '%';
+    }
+
+    function selectAnswer(letter, button) {
+      document.querySelectorAll('.answer').forEach(answer => {
+        answer.classList.remove('selected');
+      });
+
+      button.classList.add('selected');
+      selectedAnswer = letter;
+      nextButton.disabled = false;
+    }
+
+    function nextQuestion() {
+      if (!selectedAnswer) return;
+
+      scores[selectedAnswer]++;
+
+      currentQuestion++;
+
+      if (currentQuestion < questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      questionScreen.classList.add('hidden');
+      resultScreen.classList.remove('hidden');
+
+      progressBar.style.width = '100%';
+
+      const highestScore = Math.max(...Object.values(scores));
+
+      const winners = Object.keys(scores).filter(
+        letter => scores[letter] === highestScore
+      );
+
+      // In caso di parità, viene mostrato il primo risultato tra quelli a pari merito.
+      const winner = winners[0];
+      const result = results[winner];
+
+      resultLetter.textContent = winner;
+      resultTitle.textContent = result.title;
+      resultSubtitle.textContent = result.subtitle;
+      resultDescription.textContent =
+        result.description + ' ' + result.extra;
+    }
+
+    function restartQuiz() {
+      resultScreen.classList.add('hidden');
+      questionScreen.classList.remove('hidden');
+
+      currentQuestion = 0;
+      selectedAnswer = null;
+      scores = { A: 0, B: 0, C: 0, D: 0 };
+
+      showQuestion();
+    }
+  </script>
+
+</body>
+</html>
